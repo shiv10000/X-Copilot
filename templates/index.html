@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shivam AI Co-Pilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/monokai-sublime.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #2f4051;
+            --accent-color: #3498db;
+            --text-color: #ecf0f1;
+            --background-color: #1a1a1a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--primary-color);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            height: 80vh;
+        }
+        .controls {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+#rag-toggle {
+    background-color: #27ae60;
+    padding: 8px 16px;
+    font-size: 0.9em;
+}
+
+#rag-toggle.rag-off {
+    background-color: #e74c3c;
+}
+
+        .chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: var(--secondary-color);
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .think-message {
+            background-color: #001920;
+            border-left: 4px solid #88ffaa;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 4px;
+            font-style: italic;
+            color: #88ffaa;
+        }
+
+        .user-message {
+            background-color: var(--accent-color);
+            margin-left: auto;
+            color: white;
+        }
+
+        .ai-message {
+            background-color: var(--primary-color);
+            margin-right: auto;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 20px;
+            background-color: var(--primary-color);
+            border-top: 1px solid var(--secondary-color);
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        input[type="text"]::placeholder {
+            color: #95a5a6;
+        }
+
+        input[type="text"]:focus {
+            outline: 2px solid var(--accent-color);
+            background-color: #2c3e50;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--accent-color);
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Code block styling */
+        .message.ai-message pre {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #272822;
+            overflow-x: auto;
+        }
+
+        .message.ai-message code {
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 0.85em;
+        }
+
+        /* Animation styles */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Improved thinking animation */
+        .thinking-container {
+            display: flex;
+            align-items: center;
+            background: #001920;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .thinking-dots {
+            display: flex;
+            margin-left: 10px;
+        }
+
+        .thinking-dot {
+            width: 8px;
+            height: 8px;
+            margin: 0 3px;
+            background-color: #88ffaa;
+            border-radius: 50%;
+            animation: thinkingBounce 1.4s infinite;
+        }
+
+        .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes thinkingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        /* Streaming text animation */
+        .streaming {
+            border-right: 2px solid var(--accent-color);
+            animation: blink 0.7s step-end infinite;
+        }
+
+        @keyframes blink {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--accent-color); }
+        }
+
+        /* Code block animations */
+        .code-block {
+            opacity: 0;
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Button ripple effect */
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        button:active::after {
+            animation: ripple 0.6s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    
+        <h1>X-Copilot</h1>
+        <div class="controls">
+            <button id="rag-toggle" onclick="toggleRAG()">RAG: ON</button>
+        </div>
+        <div class="chat-container">
+            <div class="chat-box" id="chat-box"></div>
+            <div class="input-container">
+                <input type="text" id="query" placeholder="Ask me anything..." autocomplete="off">
+                <button onclick="sendQuery()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>
+        let ragEnabled = true;
+
+function toggleRAG() {
+    fetch('/toggle_rag', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                ragEnabled = data.rag_enabled;
+                const button = document.getElementById('rag-toggle');
+                button.textContent = `RAG: ${ragEnabled ? 'ON' : 'OFF'}`;
+                button.classList.toggle('rag-off', !ragEnabled);
+            }
+        });
+}
+
+        const chatBox = document.getElementById('chat-box');
+        const queryInput = document.getElementById('query');
+        let isStreaming = false;
+
+        queryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !isStreaming) sendQuery();
+        });
+
+        function showThinking() {
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'thinking-container';
+            thinkingDiv.innerHTML = `
+                <span>Thinking</span>
+                <div class="thinking-dots">
+                    <div class="thinking-dot"></div>
+                    <div class="thinking-dot"></div>
+                    <div class="thinking-dot"></div>
+                </div>
+            `;
+            chatBox.appendChild(thinkingDiv);
+            return thinkingDiv;
+        }
+
+        function addMessage(content, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            if (sender === 'ai') {
+                // Parse think/answer sections
+                const thinkMatch = content.match(/<think>(.*?)<\/think>(.*)/s);
+                let thinkContent = '';
+                let answerContent = content;
+
+                if (thinkMatch) {
+                    thinkContent = thinkMatch[1].trim();
+                    answerContent = thinkMatch[2].trim();
+                }
+
+                // Create message container
+                const containerDiv = document.createElement('div');
+                
+                // Add thinking section if exists
+                if (thinkContent) {
+                    const thinkDiv = document.createElement('div');
+                    thinkDiv.className = 'think-message';
+                    thinkDiv.innerHTML = thinkContent;
+                    containerDiv.appendChild(thinkDiv);
+                }
+
+                // Add answer section
+                const answerDiv = document.createElement('div');
+                answerDiv.innerHTML = '';
+                containerDiv.appendChild(answerDiv);
+                
+                chatBox.appendChild(containerDiv);
+                messageDiv.remove();
+
+                // Stream answer content
+                let index = 0;
+                function streamText() {
+                    if (index < answerContent.length) {
+                        answerDiv.innerHTML += answerContent[index];
+                        index++;
+                        setTimeout(streamText, 20);
+                    } else {
+                        answerDiv.classList.remove('streaming');
+                        hljs.highlightAll();
+                    }
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+                
+                answerDiv.classList.add('streaming');
+                streamText();
+            } else {
+                messageDiv.innerHTML = content;
+                chatBox.appendChild(messageDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        async function sendQuery() {
+    if (isStreaming) return;
+    
+    const query = queryInput.value.trim();
+    if (!query) return;
+
+    isStreaming = true;
+    addMessage(query, 'user');
+    queryInput.value = '';
+    const thinkingIndicator = showThinking();
+
+    try {
+        const response = await fetch('/query', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: new URLSearchParams({ 
+                query,
+                rag_enabled: ragEnabled  // Send RAG state
+            })
+        });
+
+                const data = await response.json();
+                thinkingIndicator.remove();
+
+                if (data.status === 'success') {
+                    addMessage(data.response, 'ai');
+                } else {
+                    addMessage(`Error: ${data.response}`, 'ai');
+                }
+            } catch (error) {
+                thinkingIndicator.remove();
+                addMessage(`Network Error: ${error.message}`, 'ai');
+            } finally {
+                isStreaming = false;
+            }
+        }
+    </script>
+</body>
+</html>
